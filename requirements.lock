@@ -8,5 +8,7 @@
 
 -e file:.
 psycopg==3.1.9
+python-dotenv==1.0.0
 typing-extensions==4.6.3
+tzdata==2023.3
 whoisdomain==1.20230525.9
