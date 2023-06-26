@@ -5,7 +5,10 @@ description = "Add a short description here"
 authors = [
     { name = "Kuranai", email = "mail@kuranai.de" }
 ]
-dependencies = []
+dependencies = [
+    "whoisdomain>=1.20230525.9",
+    "psycopg>=3.1.9",
+]
 readme = "README.md"
 requires-python = ">= 3.8"
 

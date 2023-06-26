@@ -13,4 +13,7 @@ mypy-extensions==1.0.0
 packaging==23.1
 pathspec==0.11.1
 platformdirs==3.8.0
+psycopg==3.1.9
 ruff==0.0.275
+typing-extensions==4.6.3
+whoisdomain==1.20230525.9
