@@ -3,12 +3,18 @@ from time import sleep
 import socket
 import datetime
 import psycopg
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+Connectionstring = os.environ["Connectionstring"]
 
 
 def create_connection():
     conn = None
     try:
-        conn = psycopg.connect(conninfo="postgres://postgres:...")
+        conn = psycopg.connect(conninfo=Connectionstring)
     except psycopg.Error as e:
         print(e)
 
@@ -74,9 +80,7 @@ def update_domain(domain):
 
 conn = create_connection()
 with conn:
-    for row in conn.execute(
-        "SELECT * FROM logos where com_status is null or io_status is null"
-    ):
+    for row in conn.execute("SELECT * FROM domains where status is null"):
         # get the name of the logo
         name = row[0]
         # check if domain is available
