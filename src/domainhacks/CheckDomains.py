@@ -1,10 +1,10 @@
 import whoisdomain as whois
 from time import sleep
 import socket
-import datetime
 import psycopg
 import os
 from dotenv import load_dotenv
+import dns.resolver
 
 load_dotenv()
 
@@ -46,6 +46,17 @@ def check_dns(domain):
         return True
 
 
+def check_mx(domain):
+    try:
+        # Attempt to retrieve the MX records for the domain
+        mx_records = dns.resolver.resolve(domain, "MX")
+        # If we find MX records, the domain is likely taken
+        return False
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+        # If we don't find MX records, the domain may be available
+        return True
+
+
 def log_exception(domain, e):
     update_task(conn, "False", domain)
     print(f"Domain: {domain} as the following error: {e}")
@@ -78,8 +89,9 @@ def domain_is_free(domain):
 def update_domain(domain):
     should_sleep = False
     if check_dns(domain):
-        domain_is_free(domain)
-        should_sleep = True
+        if check_mx(domain):
+            domain_is_free(domain)
+            should_sleep = True
     else:
         # update db, domain is not free
         update_task(conn, "False", domain)
