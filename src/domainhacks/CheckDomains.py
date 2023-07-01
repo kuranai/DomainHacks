@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-Connectionstring = os.environ["Connectionstring"]
+Connectionstring = os.environ["CONNECTIONSTRING"]
 
 
 def create_connection():
@@ -26,7 +26,7 @@ def update_task(conn, status, domainname):
         "update domains set "
         + "status = "
         + status
-        + " where name = '"
+        + " where domain = '"
         + domainname
         + "'"
     )
@@ -46,6 +46,11 @@ def check_dns(domain):
         return True
 
 
+def log_exception(domain, e):
+    update_task(conn, "False", domain)
+    print(f"Domain: {domain} as the following error: {e}")
+
+
 # check if domain is available with whois
 def domain_is_free(domain):
     try:
@@ -58,12 +63,16 @@ def domain_is_free(domain):
             update_task(conn, "True", domain)
     # catch exception and print error
     except whois.exceptions.WhoisCommandFailed as e:
-        print(e)
+        log_exception(domain, e)
         sleep(60)
     except whois.exceptions.FailedParsingWhoisOutput as e:
-        print(e)
+        log_exception(domain, e)
     except whois.exceptions.UnknownDateFormat as e:
-        print(e)
+        log_exception(domain, e)
+    except whois.exceptions.UnknownTld as e:
+        log_exception(domain, e)
+    except whois.exceptions.WhoisPrivateRegistry as e:
+        log_exception(domain, e)
 
 
 def update_domain(domain):
@@ -80,12 +89,11 @@ def update_domain(domain):
 
 conn = create_connection()
 with conn:
+    counter = 0
     for row in conn.execute("SELECT * FROM domains where status is null"):
-        # get the name of the logo
-        name = row[0]
+        counter += 1
+        domain = row[0]
         # check if domain is available
-        update_domain(name)
-        print(f"{datetime.datetime.now()}: {name}")
-        # print time
-        # print(datetime.datetime.now())
-        conn.commit()
+        update_domain(domain)
+        if counter % 10 == 0:
+            conn.commit()
