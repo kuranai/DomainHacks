@@ -52,7 +52,12 @@ def check_mx(domain):
         mx_records = dns.resolver.resolve(domain, "MX")
         # If we find MX records, the domain is likely taken
         return False
-    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+    except (
+        dns.resolver.NoAnswer,
+        dns.resolver.NXDOMAIN,
+        dns.resolver.NoNameservers,
+        dns.resolver.LifetimeTimeout,
+    ):
         # If we don't find MX records, the domain may be available
         return True
 
