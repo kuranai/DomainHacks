@@ -1,3 +1,4 @@
+import requests
 import whoisdomain as whois
 from time import sleep
 import socket
@@ -19,6 +20,27 @@ def create_connection():
         print(e)
 
     return conn
+
+
+def check_with_api(domain):
+    query = "https://domains.revved.com/v1/domainStatus?domains=," + domain
+    response = requests.get(query)
+    print(response.json())
+    sleep(2)
+    if response.status_code == 200:
+        if "error" in response.json():
+            return False
+        data = response.json()
+        if (
+            "status" in data
+            and len(data["status"]) > 0
+            and "available" in data["status"][0]
+        ):
+            if data["status"][0]["available"] == True:
+                return True
+        return False
+    else:
+        return False
 
 
 def update_task(conn, status, domainname):
@@ -92,16 +114,16 @@ def domain_is_free(domain):
 
 
 def update_domain(domain):
-    should_sleep = False
     if check_dns(domain):
-        if check_mx(domain):
-            domain_is_free(domain)
-            should_sleep = True
+        # if check_mx(domain):
+        # domain_is_free(domain)
+        if check_with_api(domain):
+            update_task(conn, "True", domain)
+        else:
+            update_task(conn, "False", domain)
     else:
         # update db, domain is not free
         update_task(conn, "False", domain)
-    if should_sleep:
-        sleep(2)
 
 
 conn = create_connection()
@@ -112,5 +134,4 @@ with conn:
         domain = row[0]
         # check if domain is available
         update_domain(domain)
-        if counter % 10 == 0:
-            conn.commit()
+        conn.commit()
